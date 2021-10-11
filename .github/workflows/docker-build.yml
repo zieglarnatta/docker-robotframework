@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Build image
         run:
-          docker build . --tag $IMAGE_NAME --file Dockerfile
+          docker build . --file Dockerfile
       - name: Basic Test
         run:
           docker run --rm -e ROBOT_TESTS=/tests/ -e ROBOT_LOGS=/tests/logs/ -v $(pwd)/tests:/tests/ -ti yleisradio/docker-robotframework
