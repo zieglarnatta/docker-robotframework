@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM  python:3.9.0-alpine3.12
 
 LABEL description="Docker image for the Robot Framework http://robotframework.org/ modified for Yleisradio use cases"
 LABEL usage=" "
