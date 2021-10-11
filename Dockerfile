@@ -16,7 +16,7 @@ ENV DEBIAN_FRONTEND noninteractive
 # Create user
 #RUN useradd automation --shell /bin/bash --create-home
 
-RUN apt-get -yqq  update \
+RUN apt-get update \
     && apt-get install -y software-properties-common \
 
 #install pip3 and python3 + libraries
