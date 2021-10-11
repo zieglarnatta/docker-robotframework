@@ -1,0 +1,102 @@
+name: Docker
+
+on: push
+    # Publish `master` as Docker `latest` image.
+    #branches:
+    #  - master
+
+    # Publish `v1.2.3` tags as releases.
+    #tags:
+     # - '*'
+
+  # Run tests for any PRs.
+  #pull_request:
+
+env:
+  # The image name
+  IMAGE_NAME: docker-robot-framework
+
+jobs:
+  # Run tests.
+  # See also https://docs.docker.com/docker-hub/builds/automated-testing/
+  build:
+    runs-on: ubuntu-latest
+    # run all our tests on each browser
+    strategy:
+      matrix:
+        include:
+          - browser: "chrome"
+          #- browser: "firefox"
+    env:
+      BROWSER: ${{ matrix.browser }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build image
+        run:
+          docker build . --tag $IMAGE_NAME --file Dockerfile
+      - name: Basic Test
+        run:
+          docker run --rm -e ROBOT_TESTS=/tests/ -e ROBOT_LOGS=/tests/logs/ -v $(pwd)/tests:/tests/ -ti yleisradio/docker-robotframework
+          #docker run --shm-size=1g --name robotframework -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER $IMAGE_NAME
+      - name: Who s the docker ?
+        run:
+          docker ps -a
+      - name: Step 1 - Create a temporary artifact downloads folder
+        run: mkdir downloads
+      - name: step 2 - Add artifacts to publish to the temp folder
+        run: |
+          cd downloads
+          echo 'alpha'    > alpha.html
+          echo 'bravo'    > bravo.html
+          echo 'charlie'  > charlie.html
+          cd ..
+      - name: Step 3 - Use the Upload Artifact GitHub Action
+        uses: actions/upload-artifact@v2
+        with:
+          name: assets-for-download
+          path: opt/robotframework/reports
+      - name: Copy results.html out from container
+        run:
+          docker cp robotframework:/opt/robotframework/temp/reports/results.html /reports
+#      - name: Archive generated log files
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: zieglarnatta
+#          path: reports/log.html
+#      - name: Colour Depth 16 Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e SCREEN_COLOUR_DEPTH=16 $IMAGE_NAME
+#      - name: Screen Width 800x600 Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e SCREEN_WIDTH=800 -e SCREEN_HEIGHT=600 $IMAGE_NAME
+#      - name: Screen Width 1024x768 Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e SCREEN_WIDTH=1024 -e SCREEN_HEIGHT=768 $IMAGE_NAME
+#      - name: Screen Width 1280x1024 Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e SCREEN_WIDTH=1280 -e SCREEN_HEIGHT=1024 $IMAGE_NAME
+#      - name: Screen Width 2560x1440 Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e SCREEN_WIDTH=2560 -e SCREEN_HEIGHT=1440 $IMAGE_NAME
+#      - name: Screen Width 3840x2160 Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e SCREEN_WIDTH=3840 -e SCREEN_HEIGHT=2160 $IMAGE_NAME
+#      - name: Debug Log Level Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e ROBOT_OPTIONS="--loglevel DEBUG" $IMAGE_NAME
+#      - name: Basic Multithreaded Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e ROBOT_THREADS=4 $IMAGE_NAME
+#      - name: Test Level Multithreaded Test
+#        run:
+#          docker run --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e ROBOT_THREADS=4 -e PABOT_OPTIONS="--testlevelsplit" $IMAGE_NAME
+#      - name: Custom User Test
+#        run:
+#          docker run --user=2000 --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER $IMAGE_NAME
+#      - name: Custom User and Group Test
+#        run:
+#          docker run --user=2000:2000 --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER $IMAGE_NAME
+#      - name: Datetime
+#        run:
+#          docker run --user=2000:2000 --shm-size=1g -v `pwd`/test:/opt/robotframework/tests:Z -e BROWSER=$BROWSER -e TZ="America/New_York" $IMAGE_NAME
